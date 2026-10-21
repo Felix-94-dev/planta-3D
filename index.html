@@ -225,7 +225,7 @@ try {
   }
 
   // Externas
-  wall('x', ZN, 0, X2);
+  wall('x', ZN, 0, X2, [{ c: 1.9, w: 1.5, g: 1 }, { c: 6.8, w: 1.5, g: 1 }]);
   wall('z', 0, ZN, D); // Parede externa esquerda do ambiente 2
   wall('z', X2, ZN, 0, [{ c: -1.7, w: 0.9 }]);
   wall('x', D, 0, W, [{ c: 1.9, w: 1.8, g: 1 }, { c: 5.83, w: 2.0, g: 1 }, { c: 9.53, w: 2.0, g: 1 }]);
@@ -319,6 +319,7 @@ try {
   splitAC(5.83, 2.45, D - 0.16, Math.PI);
   splitAC(9.53, 2.45, D - 0.16, Math.PI);
   splitAC(W - 0.16, 2.45, 3.55, -Math.PI / 2);
+  splitAC(4.3, 2.45, ZN + 0.16, 0);
 
   const islandPositions = [
     { cx: 5.83, cz: 2.3 },
