@@ -119,8 +119,8 @@ try {
   const cam = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 200);
   const ctl = new THREE.OrbitControls(cam, R.domElement);
 
-  const W = 13.49, D = 8.95, H = 2.8, DH = 2.1, T = 0.12;
-  ctl.target.set(W / 2, 0, D / 2);
+  const X1 = 3.95, X2 = 11.51, ZN = -6.37, W = 14.16, D = 9.10, H = 2.8, DH = 2.1, T = 0.15;
+  ctl.target.set(W / 2, 0, (D + ZN) / 2);
   ctl.maxPolarAngle = Math.PI / 2 - 0.02;
   ctl.enableDamping = true;
 
@@ -144,7 +144,7 @@ try {
   const roof = new THREE.Group();
   S.add(walls, furn, roof);
 
-  // Piso com linhas vetoriais seguras para iOS
+  // Piso
   const floorMaterial = new THREE.MeshLambertMaterial({ color: 0xd1d5db });
   const gridLineMaterial = new THREE.LineBasicMaterial({ color: 0x111827 });
   const TAMANHO_PLACA = 0.8;
@@ -174,15 +174,23 @@ try {
     S.add(new THREE.LineSegments(gridGeom, gridLineMaterial));
   }
 
-  floor(0, 3, 3.8, D);
-  floor(0, 2.7, 1.6, 3);
-  floor(1.6, 0, 2.55, 3);
-  floor(0, 0, 1.6, 2.7);
-  floor(2.55, 0, 3.8, 3);
-  floor(3.8, 0, 10.99, D);
-  floor(10.99, 0, W, 5.3);
-  floor(10.99, 5.3, W, 7.53);
-  floor(10.99, 7.53, W, D);
+  // Parte de baixo
+  floor(0, 3.15, X1, D);
+  floor(1.75, 0, 2.55, 3.15);
+  floor(0, 0, 1.75, 3.15);
+  floor(2.55, 0, X1, 3.15);
+  floor(X1, 0, X2, D);
+  floor(X2, 0, W, 5.45);
+  floor(X2, 5.45, W, 7.83);
+  floor(X2, 7.83, W, D);
+  // Parte de cima (ambientes 10 a 15)
+  floor(0, -3.29, 5.02, 0);
+  floor(5.02, -2.30, 6.07, 0);
+  floor(6.07, -2.30, 8.42, 0);
+  floor(5.02, -3.29, 8.42, -2.30);
+  floor(8.42, -3.29, X2, 0);
+  floor(0, ZN, 8.42, -3.29);
+  floor(8.42, ZN, X2, -3.29);
 
   function seg(ax, f, u0, u1, y0, y1, c) {
     if (u1 - u0 < 0.001 || y1 - y0 < 0.001) return;
@@ -216,18 +224,32 @@ try {
     seg(ax, f, cur, b, 0, H);
   }
 
-  wall('x', 0, 0, W, [{ c: 3.15, w: 0.8 }, { c: 7.2, w: 1.2 }]);
-  wall('x', D, 0, W, [{ c: 1.9, w: 1.8, g: 1 }, { c: 5.5, w: 2.0, g: 1 }, { c: 9.2, w: 2.0, g: 1 }]);
-  wall('z', 0, 0, D);
+  // Externas
+  wall('x', ZN, 0, X2);
+  wall('z', 0, ZN, D); // Parede externa esquerda do ambiente 2
+  wall('z', X2, ZN, 0, [{ c: -1.7, w: 0.9 }]);
+  wall('x', D, 0, W, [{ c: 1.9, w: 1.8, g: 1 }, { c: 5.83, w: 2.0, g: 1 }, { c: 9.53, w: 2.0, g: 1 }]);
   wall('z', W, 0, D, [{ c: 3.55, w: 1.8, g: 1 }]);
-  wall('z', 1.6, 0, 2.7, [{ c: 0.45, w: 0.7 }, { c: 1.35, w: 0.7 }, { c: 2.25, w: 0.7 }]);
-  [0.9, 1.8, 2.7].forEach(z => wall('x', z, 0, 1.6));
-  wall('z', 2.55, 0, 3);
-  wall('x', 3, 2.55, 3.8);
-  wall('z', 3.8, 0, D, [{ c: 6.3, w: 0.9 }]);
-  wall('z', 10.99, 0, D, [{ c: 1.3, w: 0.9 }, { c: 3.55, w: 2.5, g: 1 }, { c: 6.4, w: 0.9 }, { c: 8.2, w: 0.8 }]);
-  wall('x', 5.3, 10.99, W);
-  wall('x', 7.53, 10.99, W);
+  // Banheiros 7, 8, 9 e banheiro 6
+  wall('z', 1.75, 0, 3.15, [{ c: 0.525, w: 0.7 }, { c: 1.575, w: 0.7 }, { c: 2.625, w: 0.7 }]);
+  [1.05, 2.10, 3.15].forEach(z => wall('x', z, 0, 1.75));
+  wall('z', 2.55, 0, 3.15);
+  wall('x', 3.15, 2.55, X1);
+  // Parede divisória do Ambiente 2 (fechamento lateral com passagem)
+  wall('x', 0, 0, X1, [{ c: 0.88, w: 0.8 }]);
+  // Refeitorio | sala 1 e sala 1 | escritorio, CPD, almoxarifado
+  wall('z', X1, 0, D, [{ c: 6.5, w: 0.9 }]);
+  wall('z', X2, 0, D, [{ c: 1.3, w: 0.8 }, { c: 3.55, w: 2.5, g: 1 }, { c: 6.5, w: 0.8 }, { c: 8.5, w: 0.7 }]);
+  wall('x', 5.45, X2, W);
+  wall('x', 7.83, X2, W);
+  wall('x', 0, 0, W, [{ c: 3.15, w: 0.8 }, { c: 9.15, w: 0.9 }]);
+  // Ambientes 10 a 15
+  wall('x', -3.29, 0, X2, [{ c: 7.8, w: 0.9 }, { c: 9.08, w: 0.9 }]);
+  wall('z', 8.42, ZN, -3.29);
+  wall('z', 5.02, -3.29, 0, [{ c: -2.76, w: 0.7 }]);
+  wall('x', -2.30, 5.02, 8.42);
+  wall('z', 6.07, -2.30, 0, [{ c: -1.43, w: 0.7 }]);
+  wall('z', 8.42, -2.30, 0, [{ c: -0.55, w: 0.8 }]);
 
   function B(w, h, d, x, y, z, c, g = furn) {
     const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), M(c));
@@ -258,6 +280,32 @@ try {
     targetGroup.add(g);
   }
 
+  // Criação da Mesa em L (com opção de espelhamento preciso)
+  function createDeskL(x, z, flipX = false, flipZ = false, color = '#5a4332') {
+    const g = new THREE.Group();
+    const sx = flipX ? -1 : 1;
+    const sz = flipZ ? -1 : 1;
+    
+    // Tampo principal horizontal
+    B(1.5, 0.04, 0.65, 0, 0.72, 0, color, g);
+    // Extensão vertical do L
+    B(0.65, 0.04, 1.1, -0.425 * sx, 0.72, -0.875 * sz, color, g);
+    
+    g.position.set(x, 0, z);
+    furn.add(g);
+  }
+
+  // Função para criar o Computador (Monitor, Base e Teclado)
+  function pc(x, z, ry = 0) {
+    const g = new THREE.Group();
+    B(0.45, 0.32, 0.03, 0, 0.76, 0, '#15191d', g); // Tela
+    B(0.1, 0.04, 0.1, 0, 0.74, 0, '#222222', g);   // Suporte/Base
+    B(0.38, 0.01, 0.14, 0, 0.74, 0.18, '#d0d4dc', g); // Teclado
+    g.position.set(x, 0, z);
+    g.rotation.y = ry;
+    furn.add(g);
+  }
+
   function splitAC(x, y, z, ry = 0) {
     const g = new THREE.Group();
     B(1.2, 0.35, 0.28, 0, 0, 0, '#f8fafc', g);
@@ -268,15 +316,15 @@ try {
     furn.add(g);
   }
 
-  splitAC(5.5, 2.45, D - 0.16, Math.PI);
-  splitAC(9.2, 2.45, D - 0.16, Math.PI);
+  splitAC(5.83, 2.45, D - 0.16, Math.PI);
+  splitAC(9.53, 2.45, D - 0.16, Math.PI);
   splitAC(W - 0.16, 2.45, 3.55, -Math.PI / 2);
 
   const islandPositions = [
-    { cx: 5.5, cz: 2.3 },
-    { cx: 9.2, cz: 2.3 },
-    { cx: 5.5, cz: 6.65 },
-    { cx: 9.2, cz: 6.65 }
+    { cx: 5.83, cz: 2.3 },
+    { cx: 9.53, cz: 2.3 },
+    { cx: 5.83, cz: 6.65 },
+    { cx: 9.53, cz: 6.65 }
   ];
 
   islandPositions.forEach(({ cx, cz }) => {
@@ -295,17 +343,17 @@ try {
     furn.add(islandGroup);
   });
 
-  desk(12.3, 3.55, Math.PI / 2);
-  chair(12.95, 3.55, -Math.PI / 2);
-  B(0.45, 1.8, 1.6, 13.2, 0, 1.2, '#9c8f80');
+  desk(12.9, 3.55, Math.PI / 2);
+  chair(13.55, 3.55, -Math.PI / 2);
+  B(0.45, 1.8, 1.6, 13.8, 0, 1.2, '#9c8f80');
 
   [6.0, 6.8].forEach(z => {
-    B(0.6, 2, 0.8, 13.1, 0, z, '#1d2229');
-    B(0.02, 1.7, 0.6, 12.79, 0.15, z, '#3b82f6');
+    B(0.6, 2, 0.8, 13.7, 0, z, '#1d2229');
+    B(0.02, 1.7, 0.6, 13.39, 0.15, z, '#3b82f6');
   });
-  B(0.8, 0.5, 0.6, 11.5, 0, 7.2, '#cfd3d8');
+  B(0.8, 0.5, 0.6, 12.1, 0, 7.2, '#cfd3d8');
 
-  [[13.25, 8.2, 0.4, 1.4], [12.2, 8.75, 1.5, 0.35]].forEach(([x, z, w, d]) => {
+  [[13.9, 8.45, 0.4, 1.1], [12.8, 8.85, 1.5, 0.35]].forEach(([x, z, w, d]) => {
     for (let i = 0; i < 4; i++) B(w, 0.03, d, x, 0.3 + i * 0.5, z, '#8d949c');
     for (let i = 0; i < 3; i++) B(w * 0.8, 0.25, d * 0.7, x, 0.33 + i * 0.5, z, ['#e0a43a', '#5aa3d6', '#e2e5e9'][i]);
   });
@@ -329,7 +377,7 @@ try {
     B(0.04, 0.2, 0.04, x, 0.92, D - 0.6, '#c0c6cc');
   });
 
-  [0.45, 1.35, 2.25].forEach(z => {
+  [0.525, 1.575, 2.625].forEach(z => {
     B(0.4, 0.4, 0.35, 0.3, 0, z, '#fafafa');
     B(0.4, 0.35, 0.15, 0.1, 0.4, z, '#fafafa');
   });
@@ -347,23 +395,68 @@ try {
       lamps.push(p);
     }
   }
-  [5.6, 9.3].forEach(x => [2.5, 6.5].forEach(z => lamp(x, z)));
-  [1.0, 4.5, 8.0].forEach(z => lamp(7.4, z, 1.2, 0.6, false));
-  lamp(12.24, 2.6);
-  lamp(12.24, 6.4, 0.8, 0.4);
-  lamp(12.24, 8.2, 0.8, 0.4);
+  [5.93, 9.63].forEach(x => [2.5, 6.5].forEach(z => lamp(x, z)));
+  [1.0, 4.5, 8.0].forEach(z => lamp(7.73, z, 1.2, 0.6, false));
+  lamp(12.835, 2.6);
+  lamp(12.835, 6.6, 0.8, 0.4);
+  lamp(12.835, 8.45, 0.8, 0.4);
   lamp(1.9, 4.2);
   lamp(1.9, 7.4);
   lamp(0.8, 1.35, 0.8, 0.4);
   lamp(3.17, 1.5, 0.5, 0.4);
 
-  const rf = new THREE.Mesh(
-    new THREE.PlaneGeometry(W, D),
-    new THREE.MeshLambertMaterial({ color: 0xf4f6f8, transparent: true, opacity: .85, side: THREE.DoubleSide })
-  );
-  rf.rotation.x = -Math.PI / 2;
-  rf.position.set(W / 2, H + 0.01, D / 2);
-  roof.add(rf);
+  // ==========================================
+  // CONFIGURAÇÃO FIEL AO RASCUNHO 2D
+  // ==========================================
+  const WHITE = '#fafafa';
+
+  // 10 - Sala do Diretor
+  createDeskL(0.9, -0.4, true, false);
+  chair(0.7, -1, Math.PI / 2);
+  pc(1.3, -0.8, -Math.PI / 2);
+  lamp(2.5, -1.6, 1.2, 0.6);
+
+  // 11 - Banheiro
+  B(0.4, 0.4, 0.35, 4.8, 0, -2.0, WHITE); 
+  B(0.4, 0.35, 0.15, 4.8, 0.4, -2.15, WHITE);
+  B(0.4, 0.85, 0.35, 4.8, 0, -0.4, WHITE);
+
+  // 12 - Cozinha
+  B(1.6, 0.85, 0.6, 6.9, 0, -0.35, '#8899a6');
+  B(0.4, 0.02, 0.4, 6.9, 0.86, -0.35, '#c0c6cc');
+  lamp(6.5, -1.5, 1.2, 0.6);
+
+  // 13 - Recepção
+  createDeskL(10.0, -1.5, true, true);
+  chair(9.5, -0.8, 1.56);
+  pc(10.5, -0.8, Math.PI / 2);
+  lamp(10.5, -1.5, 1.2, 0.6);
+
+  // 14 - Sala de Atendimento
+  B(1.6, 0.04, 0.9, 10.2, 0.72, -4.85, '#b98a5e');
+  [9.9, 10.5].forEach(x => { chair(x, -4.2, Math.PI); chair(x, -5.5, 0); });
+  lamp(10.2, -4.85, 1.2, 0.6);
+
+  // 15 - Sala Conjunta 
+  createDeskL(0.9, -3.8, true, false);
+  chair(0.7, -4.5, Math.PI / 2);
+  pc(1.3, -3.8, -Math.PI / 1.3);
+
+  createDeskL(7, -4.8, false, false);
+  chair(7.3, -5.5, -Math.PI/ 2);
+  pc(6.5, -4.8, Math.PI / 1.3);
+
+  lamp(2.5, -4.8, 1.2, 0.6);
+  lamp(6.5, -4.8, 1.2, 0.6);
+  // ==========================================
+
+  const roofMat = new THREE.MeshLambertMaterial({ color: 0xf4f6f8, transparent: true, opacity: .85, side: THREE.DoubleSide });
+  [[0, 0, W, D], [0, ZN, X2, 0]].forEach(([x0, z0, x1, z1]) => {
+    const rf = new THREE.Mesh(new THREE.PlaneGeometry(x1 - x0, z1 - z0), roofMat);
+    rf.rotation.x = -Math.PI / 2;
+    rf.position.set((x0 + x1) / 2, H + 0.01, (z0 + z1) / 2);
+    roof.add(rf);
+  });
   roof.visible = false;
 
   const $ = id => document.getElementById(id);
@@ -372,8 +465,8 @@ try {
     ctl.target.set(...t);
     ctl.update();
   }
-  $('bTop').onclick = () => view([6.74, 22, 4.6], [6.74, 0, 4.47]);
-  $('bPer').onclick = () => view([-4, 13, 17], [6.7, 0, 4.5]);
+  $('bTop').onclick = () => view([7.08, 27, 1.4], [7.08, 0, 1.37]);
+  $('bPer').onclick = () => view([-5, 17, 20], [7.0, 0, 1.4]);
   $('bCut').onclick = e => {
     const on = walls.scale.y == 1;
     walls.scale.y = on ? 0.35 : 1;
@@ -392,7 +485,7 @@ try {
   };
 
   walls.scale.y = 0.35;
-  view([-4, 13, 17], [6.7, 0, 4.5]);
+  view([-5, 17, 20], [7.0, 0, 1.4]);
 
   function loop() {
     requestAnimationFrame(loop);
